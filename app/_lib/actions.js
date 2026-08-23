@@ -20,6 +20,7 @@ export async function UpdateProfile(formData) {
     countryFlag,
     nationality,
   });
+  revalidatePath("/account/profile");
 }
 
 export async function signInAction() {
