@@ -50,7 +50,10 @@ export async function deleteReservation(bookingId) {
 
   revalidatePath("/account/reservations");
 }
-
+export async function updateReservation(bookingId) {
+  const session = await auth();
+  if (!session) throw new Error("Please sign in first!");
+}
 export async function signInAction() {
   await signIn("google", { redirectTo: "/account" });
 }
