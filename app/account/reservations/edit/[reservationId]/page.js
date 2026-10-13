@@ -1,12 +1,13 @@
 import { updateReservation } from "@/app/_lib/actions";
-import { getCabin } from "@/app/_lib/data-service";
+import { getBooking, getCabin } from "@/app/_lib/data-service";
 
 export default async function Page({ params }) {
   const { reservationId } = await params;
 
   const cabin = await getCabin(reservationId);
+  const booking = await getBooking(reservationId);
   const maxCapacity = cabin.maxCapacity;
-
+  const numGuests = booking.numGuests;
   return (
     <div>
       <h2 className="font-semibold text-2xl text-accent-400 mb-7">
@@ -22,6 +23,7 @@ export default async function Page({ params }) {
           <select
             name="numGuests"
             id="numGuests"
+            defaultValue={numGuests}
             className="px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm"
             required
           >
