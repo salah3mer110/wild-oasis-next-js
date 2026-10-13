@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth, signIn, signOut } from "./auth";
 import { supabase } from "./supabase";
 import { getBooking, getBookings } from "./data-service";
+import { redirect } from "next/navigation";
 
 export async function UpdateProfile(formData) {
   const session = await auth();
@@ -50,9 +51,28 @@ export async function deleteReservation(bookingId) {
 
   revalidatePath("/account/reservations");
 }
-export async function updateReservation(bookingId) {
+export async function updateReservation(formData) {
   const session = await auth();
   if (!session) throw new Error("Please sign in first!");
+
+  const id = formData.get("id");
+  const bookings = await getBookings(session.user.guestId);
+  const guestBookings = bookings.map((booking) => booking.id);
+  if (!guestBookings.includes(+id))
+    throw new Error("You are not allowed to update this Reservation");
+
+  const numGuests = formData.get("numGuests");
+  const observations = formData.get("observations");
+  const updatedFields = { numGuests, observations };
+  const { error } = await supabase
+    .from("bookings")
+    .update(updatedFields)
+    .eq("id", id);
+
+  if (error) throw new Error("Booking could not be updated");
+
+  revalidatePath("/account/reservations");
+  redirect("/account/reservations");
 }
 export async function signInAction() {
   await signIn("google", { redirectTo: "/account" });
