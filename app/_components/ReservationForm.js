@@ -1,11 +1,30 @@
 "use client";
 
+import { differenceInDays } from "date-fns";
 import { useReservation } from "../_context/ReservationContext";
+import { createReservation } from "../_lib/actions";
+import Image from "next/image";
 
 function ReservationForm({ cabin, user }) {
-  const { range } = useReservation();
-  // CHANGE
-  const { maxCapacity } = cabin;
+  const { range, resetRange } = useReservation();
+  const { maxCapacity, regularPrice, discount, id } = cabin;
+  const startDate = range.to;
+  const endDate = range.from;
+  const numNights = Math.abs(differenceInDays(endDate, startDate));
+  const cabinPrice = numNights * (regularPrice - discount);
+
+  const reservationData = {
+    startDate,
+    endDate,
+    numNights,
+    cabinPrice,
+    cabinId: id,
+  };
+
+  const createReservationWithAllData = createReservation.bind(
+    null,
+    reservationData,
+  );
 
   return (
     <div className="scale-[1.01]">
@@ -13,18 +32,28 @@ function ReservationForm({ cabin, user }) {
         <p>Logged in as</p>
 
         <div className="flex gap-4 items-center">
-          <img
-            // Important to display google profile images
-            referrerPolicy="no-referrer"
-            className="h-8 rounded-full"
-            src={user.image}
-            alt={user.name}
-          />
+          <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
+            <Image
+              // Important to display google profile images
+              referrerPolicy="no-referrer"
+              className="rounded-full object-cover"
+              src={user.image}
+              alt={user.name}
+              fill
+              sizes="32px"
+            />
+          </span>
           <p>{user.name}</p>
         </div>
       </div>
 
-      <form className="bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col">
+      <form
+        action={async (formData) => {
+          await createReservationWithAllData(formData);
+          resetRange();
+        }}
+        className="bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col"
+      >
         <div className="space-y-2">
           <label htmlFor="numGuests">How many guests?</label>
           <select
